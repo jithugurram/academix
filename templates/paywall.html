@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ video.title }}</h2>
+<p>You've used your free hour. Purchase access for ${{ video.price }}.</p>
+<button onclick="checkout({{ video.id }})">Buy Now</button>
+<script>
+function checkout(videoId) {
+  fetch(`/create-checkout-session/${videoId}`, {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+      // redirect to Stripe checkout using data.id with Stripe.js
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}{{ video.title }} - Academix{% endblock %}
+{% block content %}
+<h2>{{ video.title }}</h2>
+
+<div style="margin-bottom: 0.5rem;">
+  <label for="qualitySelect"><strong>Quality:</strong></label>
+  <select id="qualitySelect" onchange="changeQuality()">
+    {% if video.filepath_720p %}<option value="{{ url_for('static', filename=video.filepath_720p) }}">720p HD</option>{% endif %}
+    {% if video.filepath_480p %}<option value="{{ url_for('static', filename=video.filepath_480p) }}" selected>480p</option>{% endif %}
+    <option value="{{ url_for('static', filename=video.filepath) }}" {% if not video.filepath_480p %}selected{% endif %}>Original</option>
+  </select>
+</div>
+
+<video id="videoPlayer" width="640" controls>
+  <source id="videoSource" src="{% if video.filepath_480p %}{{ url_for('static', filename=video.filepath_480p) }}{% else %}{{ url_for('static', filename=video.filepath) }}{% endif %}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<script>
+function changeQuality() {
+  const select = document.getElementById('qualitySelect');
+  const player = document.getElementById('videoPlayer');
+  const source = document.getElementById('videoSource');
+  const currentTime = player.currentTime;
+  const wasPlaying = !player.paused;
+
+  source.src = select.value;
+  player.load();
+  player.currentTime = currentTime;
+  if (wasPlaying) player.play();
+}
+</script>
+
+<p>{{ video.description }}</p>
+
+<div class="section-title">Reviews</div>
+<div id="reviewsList">
+  {% for r in reviews %}
+    <div class="card">
+      <p><strong>{{ r.rating }}/5</strong> - {{ r.comment or 'No comment' }}</p>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="card" style="position: relative; overflow: visible;">
+  <h4>Rate this video</h4>
+  <form id="reviewForm">
+    <select name="rating" id="ratingSelect" required>
+      <option value="">Select rating</option>
+      <option value="1">⭐ 1 - Poor</option>
+      <option value="2">⭐ 2 - Fair</option>
+      <option value="3">⭐ 3 - Good</option>
+      <option value="4">⭐ 4 - Great</option>
+      <option value="5">⭐ 5 - Excellent</option>
+    </select>
+    <input type="text" name="comment" id="commentInput" placeholder="Write a comment (optional)">
+    <button type="submit" class="btn">Submit Review</button>
+  </form>
+</div>
+
+<style>
+.flying-emoji {
+  position: fixed;
+  font-size: 2.5rem;
+  z-index: 9999;
+  pointer-events: none;
+  animation: flyUp 1.5s ease-out forwards;
+}
+
+@keyframes flyUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-150px) scale(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-300px) scale(0.8);
+  }
+}
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--primary);
+  color: #fff;
+  padding: 0.8rem 1.2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 9999;
+  animation: fadeInOut 3s ease forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(20px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+</style>
+
+<script>
+const ratingEmojis = {
+  '1': '😞',
+  '2': '😐',
+  '3': '🙂',
+  '4': '😄',
+  '5': '🤩'
+};
+
+document.getElementById('reviewForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const rating = document.getElementById('ratingSelect').value;
+  const comment = document.getElementById('commentInput').value;
+
+  if (!rating) {
+    alert('Please select a rating');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('rating', rating);
+  formData.append('comment', comment);
+
+  try {
+    const response = await fetch("{{ url_for('student.add_review', video_id=video.id) }}", {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      // Show flying emoji animation
+      flyEmoji(ratingEmojis[rating] || '⭐');
+
+      // Show toast notification
+      showToast(`Thanks for your ${rating}-star review!`);
+
+      // Append review to the list dynamically
+      const reviewsList = document.getElementById('reviewsList');
+      const newReview = document.createElement('div');
+      newReview.className = 'card';
+      newReview.innerHTML = `<p><strong>${rating}/5</strong> - ${comment || 'No comment'}</p>`;
+      reviewsList.insertBefore(newReview, reviewsList.firstChild);
+
+      // Reset form
+      document.getElementById('reviewForm').reset();
+    }
+  } catch (err) {
+    console.error('Error submitting review:', err);
+    alert('Something went wrong. Please try again.');
+  }
+});
+
+function flyEmoji(emoji) {
+  const el = document.createElement('div');
+  el.className = 'flying-emoji';
+  el.textContent = emoji;
+
+  // Start near the submit button
+  const btn = document.querySelector('#reviewForm button');
+  const rect = btn.getBoundingClientRect();
+  el.style.left = (rect.left + rect.width / 2 - 20) + 'px';
+  el.style.top = rect.top + 'px';
+
+  document.body.appendChild(el);
+
+  setTimeout(() => el.remove(), 1500);
+}
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+</script>
+{% endblock %}

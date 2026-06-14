@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard - Academix{% endblock %}
+{% block content %}
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="value">${{ total_earnings }}</div>
+    <div class="label">Total Earnings</div>
+  </div>
+  <div class="stat-box">
+    <div class="value">{{ video_data|length }}</div>
+    <div class="label">Videos Uploaded</div>
+  </div>
+</div>
+
+<a href="{{ url_for('teacher.upload') }}" class="btn">+ Upload New Video</a>
+
+<div class="section-title">My Videos</div>
+
+{% for item in video_data %}
+  <div class="card">
+    <h4>{{ item.video.title }}</h4>
+    <p>{{ item.video.description }}</p>
+    <span class="badge {% if item.video.category == 'premium' %}badge-paid{% endif %}">
+      {{ item.video.category }} {% if item.video.category == 'premium' %}- ${{ item.video.price }}{% endif %}
+    </span>
+
+    {% if item.avg_rating %}
+      <p style="margin-top: 0.5rem;"><strong>⭐ {{ item.avg_rating }}/5</strong> ({{ item.review_count }} review{{ 's' if item.review_count != 1 else '' }})</p>
+    {% else %}
+      <p style="margin-top: 0.5rem; color: var(--text-light);">No ratings yet</p>
+    {% endif %}
+
+    {% if item.reviews %}
+      <details style="margin-top: 0.5rem;">
+        <summary style="cursor: pointer; font-weight: 600;">View Reviews</summary>
+        {% for r in item.reviews %}
+          <div style="padding: 0.5rem 0; border-top: 1px solid var(--border);">
+            <strong>{{ r.rating }}/5</strong> - {{ r.comment or 'No comment' }}
+          </div>
+        {% endfor %}
+      </details>
+    {% endif %}
+  </div>
+{% else %}
+  <p>You haven't uploaded any videos yet.</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Academix{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <nav>
+    <a href="{{ url_for('student.home') if current_user.is_authenticated and current_user.role == 'student' else url_for('auth.login') }}" class="nav-brand">📚 Academix</a>
+    <div class="nav-links">
+      {% if current_user.is_authenticated %}
+        <span class="nav-user">{{ current_user.name }} ({{ current_user.role }})</span>
+        {% if current_user.role == 'student' %}
+          <a href="{{ url_for('student.home') }}">Home</a>
+        {% elif current_user.role == 'teacher' %}
+          <a href="{{ url_for('teacher.dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('teacher.upload') }}">Upload</a>
+        {% elif current_user.role == 'admin' %}
+          <a href="{{ url_for('admin.dashboard') }}">Admin</a>
+          <a href="{{ url_for('admin.manage_users') }}">Users</a>
+        {% endif %}
+        <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Login</a>
+        <a href="{{ url_for('auth.signup') }}" class="btn">Sign Up</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for m in messages %}
+          <div class="flash">{{ m }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span class="footer-logo">📚 Academix</span>
+        <p class="footer-tagline">Bridging college syllabus with real-world skills</p>
+      <div class="footer-bottom">
+        <p>&copy; {{ current_year }} SkillBridge Technologies. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

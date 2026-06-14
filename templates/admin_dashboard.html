@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Admin Dashboard</h2>
+<p>Students: {{ total_users }} | Teachers: {{ total_teachers }} | Videos: {{ total_videos }}</p>
+<p>Total Revenue: ${{ total_revenue }}</p>
+
+<h3>Pending Payouts</h3>
+{% for p in pending_payouts %}
+  <p>Teacher #{{ p.teacher_id }} - ${{ p.amount }}
+    <a href="{{ url_for('admin.mark_paid', payout_id=p.id) }}">Mark Paid</a></p>
+{% endfor %}
+
+<h3>Recent Reviews</h3>
+{% for r in reviews %}
+  <p>{{ r.rating }}/5 - {{ r.comment }}</p>
+{% endfor %}
+{% endblock %}

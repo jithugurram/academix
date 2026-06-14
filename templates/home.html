@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Home - Academix{% endblock %}
+{% block content %}
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="value">{{ free_minutes_left }}</div>
+    <div class="label">Free minutes remaining</div>
+  </div>
+</div>
+
+<div class="section-title">📘 College Syllabus Videos (Free)</div>
+<div class="grid">
+  {% for v in syllabus_videos %}
+    <div class="card">
+      <span class="badge">Free</span>
+      <h4>{{ v.title }}</h4>
+      <p>{{ v.description }}</p>
+      <a href="{{ url_for('student.watch', video_id=v.id) }}" class="btn">Watch</a>
+    </div>
+  {% else %}
+    <p>No syllabus videos yet.</p>
+  {% endfor %}
+</div>
+
+<div class="section-title">🚀 Beyond Syllabus (Premium)</div>
+<div class="grid">
+  {% for v in premium_videos %}
+    <div class="card">
+      <span class="badge badge-paid">${{ v.price }}</span>
+      <h4>{{ v.title }}</h4>
+      <p>{{ v.description }}</p>
+      <a href="{{ url_for('student.watch', video_id=v.id) }}" class="btn btn-secondary">View / Buy</a>
+    </div>
+  {% else %}
+    <p>No premium videos yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}
