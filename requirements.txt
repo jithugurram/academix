@@ -4,3 +4,4 @@ flask-login
 flask-mail
 stripe
 werkzeug
+flask-migrate
